@@ -10,7 +10,6 @@ public class Customer {
     private String name;
     private String id;
     private String password;
-
     private String membership;
     private double discount;
     private int maxItems;
@@ -18,15 +17,13 @@ public class Customer {
     private int creditPerItem;
     private int currentCredits;
 
-
     private ArrayList<Message> sentMessageList = new ArrayList();
     private ArrayList<Message> receivedMessageList = new ArrayList();
 
     public Customer(String name, String password){
-        this.name=name;
-        this.password = password;
         this.id= UUID.randomUUID().toString();
         this.name=name;
+        this.password = password;
         this.membership= "regular";
         this.discount = 1;
         this.creditPerItem = 0;
@@ -46,8 +43,6 @@ public class Customer {
     public String getPassword(){
         return password;
     }
-
-
 
     public String getMembership()  { return membership; }
 
@@ -70,7 +65,6 @@ public class Customer {
     public void setMaxItems(int maxItems) {this.maxItems = maxItems; }
 
     public void setCreditPerItem(int creditPerItem) {this.creditPerItem = creditPerItem; }
-
 
     public void printAllGames(ArrayList<Game> gameList) {
         String status1;
@@ -107,7 +101,7 @@ public class Customer {
         }
     }
 
-    public void returnGame(ArrayList<Game> gameList, Scanner input, boolean free) {
+    public String returnGame(ArrayList<Game> gameList, Scanner input, boolean free) {
         printAllGames(gameList);
         System.out.print("Enter game Id you want to return: ");
         String id = input.nextLine();
@@ -160,11 +154,24 @@ public class Customer {
         if(!isGameFound){
             System.out.println("The game with ID: "+ id +" not found");
         }
-    
+        return id;
+    }
+    public int findGame(ArrayList<Game> gameList,String id) {
 
-        if(isGameFound == false){
-            System.out.println("The game with ID: "+ id +" not found");
+
+        int position = 0;
+        boolean isGameFound;
+
+        for (int i = 0; i < gameList.size(); i++) {
+            if (gameList.get(i).getId().equals(id)) {
+                isGameFound = true;
+
+
+
+                position = i;
+            }
         }
+        return position;
     }
 
     public void addSentMessage(Message message) {
@@ -204,6 +211,154 @@ public class Customer {
         int messageIndex = messageNumber-1;
         receivedMessageList.remove(messageIndex);
         System.out.println("The message has successfully been removed!");
+    }
+    public void rateGame(ArrayList<Game> gameList, Scanner input, int position) {
+        boolean status = true;
+        boolean statusInput = true;
+        int reviewNumber = 0;
+        String reviewText;
+        String outputName;
+        while(status) {
+            System.out.println("Do you want to rate the game? Y/N ");
+            String askUser = input.nextLine();
+            switch (askUser) {
+                case "Y", "y" -> {
+                    reviewNumber = getUserRatingGame(statusInput,reviewNumber, input);
+                    gameList.get(position).setRatingNumber(reviewNumber);
+                    System.out.println("Would you like to leave a comment? If not press enter. ");
+                    reviewText = input.nextLine();
+                    gameList.get(position).setReviewText(reviewText);
+                    status = false;
+                    break;
+                }
+                case "N", "n" -> {
+                    System.out.println("Thank you for renting the game and we hope you rate your experience next time.");
+                    status = false;
+                    break;
+                }
+                default -> {
+                    System.out.println("Invalid syntax.");
+                }
+            }
+        }
+    }
+
+    private int getUserRatingGame(boolean statusInput, int reviewNumber, Scanner input) {
+        while(statusInput == true) {
+            System.out.println("What rating from 0-5 would you give the game? ");
+            reviewNumber = input.nextInt();
+            input.nextLine();
+            if (reviewNumber >= 0 && 5 >= reviewNumber) {
+                statusInput = false;
+            }
+            else {
+                System.out.println("Please type a number between 0-5. ");
+            }
+        }
+        return reviewNumber;
+    }
+
+    public void printAverageRatingNumber(ArrayList<Game> gameList) {
+        for(int i = 0; i < gameList.size(); i++) {
+            double averageNumber = 0.00;
+            double total = 0;
+            ArrayList<Integer> ratingNumbers = gameList.get(i).getRatingNumbers();
+            for (int ratingNumber: ratingNumbers) { // sum all rating number
+                total += ratingNumber;
+            }
+            if (total == 0){
+                System.out.println("Average number for game: " + gameList.get(i).getTitle() + " is not found");
+            } else {
+                averageNumber = total / ratingNumbers.size();
+                System.out.println("Average number for game: " + gameList.get(i).getTitle() + " is " + averageNumber);
+            }
+        }
+    }
+
+    public void searchGame(ArrayList<Game> gameList, Scanner input) {
+        System.out.println("Do you want to search for game or album? ");
+        String askUser = input.nextLine();
+        switch (askUser){
+            case "Game", "game" -> {
+                System.out.println("Please enter your genre: ");
+                String askGenre = input.nextLine();
+                System.out.println("The game with the genre " + askGenre + " is:");
+                boolean isGenreFound = false;
+                for(int i = 0; i < gameList.size(); i++ ){
+                    if(gameList.get(i).getGenre().equals(askGenre)){
+                        System.out.println(gameList.get(i).toString());
+                        isGenreFound = true;
+                    }
+                }
+                if (!isGenreFound) {
+                    System.out.println("Genre not found!");
+                }
+                break;
+            }
+            /*case "Album", "album" -> {
+                System.out.println("Please enter the year of the album: ");
+                int askYear = input.nextInt();
+                System.out.print(askYear + " : ");
+                for(int i = 0; i < gameList.size(); i++ ){
+                    if(gameList.get(i).getAlbum().equals(askYear)){
+                        System.out.println(askYear + " : ");
+                    }
+                }
+                break;
+            }*/
+            default -> {
+                System.out.println("Invalid choice");
+                break;
+            }
+        }
+    }
+
+    public void sortedBaseOnRating(ArrayList<Game> gameList, Scanner input) {
+        System.out.println("Do you want to view game or album? ");
+        String askUser = input.nextLine();
+        switch (askUser){
+            case "Game", "game" -> {
+                //create array of game instead of Arraylist for sorting purpose. Because arrayList cannot change position.
+                Game[] sortGameArr = new Game[gameList.size()];
+                for (int i = 0; i < gameList.size(); i++) {
+                    sortGameArr[i] = gameList.get(i);
+                }
+
+                sortGameArr = sortingGameByAverageRating(sortGameArr);
+
+                for(int i = 0; i < sortGameArr.length; i++ ){
+                    System.out.println(sortGameArr[i].toString() + "The Average rating is " + (int) sortGameArr[i].getAverageRatingNumber() + "\n");
+                }
+            }
+            /*case "Album", "album" -> {
+                System.out.println("Please enter the year of the album: ");
+                int askYear = input.nextInt();
+                System.out.print(askYear + " : ");
+                for(int i = 0; i < gameList.size(); i++ ){
+                    if(gameList.get(i).getAlbum().equals(askYear)){
+                        System.out.println(askYear + " : ");
+                    }
+                }
+                break;
+            }*/
+            default -> {
+                System.out.println("Invalid choice");
+                break;
+            }
+        }
+    }
+
+    private Game[] sortingGameByAverageRating(Game[] sortGameArr){
+        for (int i = 0; i < sortGameArr.length; i++){
+            for (int j = i+1; j < sortGameArr.length; j++) {
+                if (sortGameArr[i].getAverageRatingNumber() < sortGameArr[j].getAverageRatingNumber()){
+                    Game tmpGame = sortGameArr[i];
+                    sortGameArr[i] = sortGameArr[j];
+                    sortGameArr[j] = tmpGame;
+                }
+            }
+        }
+        return sortGameArr;
     }
 
 

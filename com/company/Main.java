@@ -1,6 +1,5 @@
 package com.company;
 
-import javax.management.StringValueExp;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -14,6 +13,10 @@ public class Main {
     private ArrayList<Request> requestList = new ArrayList<>();
     Manager manager;
     Scanner input;
+    int position;
+    String title;
+    String genre;
+    Double dailyRent;
 
     public Main(Manager manager, Scanner input){
         this.manager = manager; //Program need manager. create manager by default. COMPOSITE!!!
@@ -107,7 +110,7 @@ public class Main {
             System.out.println("Employee Screen - Type one of the options below: " +
                     "\n1. Register a game \n2. Remove a game" +
                     "\n3. Register a customer \n4. Remove a customer " +
-                    "\n5. Show total rent profit \n6. View all games \n7.Show all membership requests\n8.Show all customers\n9. Return to Main Menu");
+                    "\n5. Show total rent profit \n6. View all games \n7. View all membership requests \n8. Print all customers \n9.Return to main menu");
 
             String userOption3 = input.nextLine(); //taking user's password
             switch (userOption3) {
@@ -152,34 +155,31 @@ public class Main {
                     else
                         employeeList.get(0).printAllGames(gameList);
                 }
-                 case "7" -> {
+                case "7" -> {
                     System.out.println("Show all membership requests");
                     //for all the membership requests received
                     for (int i = 0; i < requestList.size(); i++) {
-                        System.out.println("Do you want to accept (a) or reject (r) this request from ID: " + requestList.get(i).getId());
+                        System.out.printf("Do you want to accept (a) or reject (r) this request?\nID: %s\nName: %s\n" , requestList.get(i).getId(), requestList.get(i).getName());
                         String choice = input.nextLine();
-                        if (choice.equals("r")) { //if request rejected
+                        if (choice.equals("r") || choice.equals("R")) { //if request rejected
                             System.out.println("Membership request rejected!");
-                        } else if (choice.equals("a")) { //if request accepted
+                        } else if (choice.equals("a") || choice.equals("A")) { //if request accepted
                             Customer customer = null;
-                            for(int index = 0; index < customerList.size(); index++){
-                                if(requestList.get(i).getId().equals(customerList.get(index).getId()))
-                                    customer =  customerList.get(index);
+                            for (int index = 0; index < customerList.size(); index++) {
+                                if (requestList.get(i).getId().equals(customerList.get(index).getId()))
+                                    customer = customerList.get(index);
                             }
-                            if(customer != null){
+                            if (customer != null) {
                                 employeeList.get(0).upgradeMembership(requestList.get(i), requestList.get(i).getId(), customer); //call the upgrade function to cater to the request
                             }
                         }
                     }
                     requestList.clear(); //removes all requests after handling them
                 }
-                    case "8" -> {
-                        System.out.println("Customer List");
-                        employeeList.get(0).printAllCustomers(customerList);
-                    }
-
-
-
+                case "8" -> {
+                    System.out.println("Customer List");
+                    employeeList.get(0).printAllCustomers(customerList);
+                }
                 case "9" -> {
                     System.out.println("Return to main menu");
                     backToMenu();
@@ -199,57 +199,57 @@ public class Main {
         employeeList.get(0).printAllCustomers(customerList);
         System.out.println("Please put in your id");
         Customer customer = findCustomerId();
+        String givenId = toString(customer);
         System.out.println("What's your password?");
         String password = input.nextLine();
 
         if(customer.getPassword().equals(password)) {
             System.out.println("Customer Screen - Type one of the options below: \n1. Rent a game " +
-                    "\n2. Return a game \n3. Return to Main Menu \n4. Send message \n5. Read message \n6. Remove message\n7.Request membership upgrade");
+                    "\n2. Return a game \n3. Return to Main Menu \n4. Send message \n5. Read message \n6. Remove message \n7.Request membership upgrade \n8. Search game or album.");
 
             String userOption5 = input.nextLine();
             switch (userOption5) {
-                case "1":
+                case "1": //renting a game
                     int ci = 0, mi = 0; //current items and max items
-                    boolean isRegistered = false; //to check whether a customer with a given ID is registered
                     System.out.println("Rent a game");
-
-                    String customerID = String.valueOf(customer);
-                    //fetching the no. of current items rented by the customer
-                    for (int i = 0; i < customerList.size(); i++) {
-                        if (customerID.equals(customerList.get(i).getId())) {
+                    //fetching the customer's current rented items and max allowed items
+                    for (int i = 0; i < customerList.size(); i++)
+                    {
+                        if (givenId.equals(customerList.get(i).getId())) {
                             ci = customerList.get(i).getCurrentItems();
                             mi = customerList.get(i).getMaxItems();
-                            isRegistered = true;
                         }
                     }
-                    if (isRegistered == true) {
-                        System.out.println("Rent a game");
-                        //checking to see if the current rented items are less than the max limit
-                        if (ci < mi) {
-                            customerList.get(0).printAllGames(gameList);
-                            System.out.println("Enter the ID of the game to rent: ");
-                            String Id = input.nextLine();
-                            customerList.get(0).rentGame(gameList, Id);
-                            ci = ci + 1;
-                            for (int i = 0; i < customerList.size(); i++) {
-                                if (customerID.equals(customerList.get(i).getId())) {
-                                    customerList.get(i).setCurrentItems(ci);
-                                }
+                    //checking to see if the current rented items are less than the max limit
+                    if (ci < mi) //if renting is allowed
+                    {
+                        customerList.get(0).printAllGames(gameList);
+                        System.out.println("Enter the ID of the game to rent: ");
+                        String Id = input.nextLine();
+                        customerList.get(0).rentGame(gameList, Id);
+                        ci = ci + 1;
+
+                        for (int i = 0; i < customerList.size(); i++)
+                        {
+                            if (givenId.equals(customerList.get(i).getId()))
+                            {
+                                customerList.get(i).setCurrentItems(ci);
                             }
-                        } else
-                            System.out.println("You are not allowed to rent more items.");
-                    } else
-                        System.out.println("Sorry! No customer is registered with this ID.\nOnly registered customers can rent a game.");
+                        }
+                        System.out.println("You have successfully rented this game!");
+                    }
+                    else
+                        System.out.println("You are not allowed to rent more items.");
                     break;
                 case "2":
                     int cc = 0, cpi = 0, curr_i = 0; //current credits, credit per item, current items
                     int index = 0;
                     boolean free = false;
-                    boolean isRegistered2 = false;
-                    String customerID2 = input.nextLine();
+                    boolean isRegistered2 = false; //to check whether a customer with a given ID is registered
+
                     //fetching the no. of current items rented by the customer
                     for (int i = 0; i < customerList.size(); i++) {
-                        if (customerID2.equals(customerList.get(i).getId())) {
+                        if (givenId.equals(customerList.get(i).getId())) {
                             cc = customerList.get(i).getCurrentCredits();
                             cpi = customerList.get(i).getCreditPerItem();
                             curr_i = customerList.get(i).getCurrentItems();
@@ -259,7 +259,7 @@ public class Main {
                     if (isRegistered2 == true) {
                         //adding the credits upon return of an item
                         for (int k = 0; k < customerList.size(); k++) {
-                            if (customerID2.equals(customerList.get(k).getId())) {
+                            if (givenId.equals(customerList.get(k).getId())) {
                                 cc = cc + cpi;
                                 customerList.get(k).setCurrentCredits(cc);
                                 index = k;
@@ -271,17 +271,21 @@ public class Main {
                             customerList.get(index).setCurrentCredits(cc);
 
                         }
-                        customerList.get(0).returnGame(gameList, input, free);
+                        String id2= customerList.get(0).returnGame(gameList,input,free);
+                        String id3=String.valueOf(id2);
                         curr_i = curr_i - 1;
                         customerList.get(index).setCurrentItems(curr_i);
                         System.out.printf("\nYour credits have updated to %d!\n", cc);
                         manager.addTotalProfit(gameList);
+                        int position = customerList.get(0).findGame(gameList,id3);
+                        customerList.get(0).rateGame(gameList, input, position);
+                        title = gameList.get(position).getTitle();
+                        genre = gameList.get(position).getGenre();
+                        dailyRent = gameList.get(position).getDailyRent();
 
                     } else
                         System.out.println("This customer ID does not exist.\n");
 
-
-                    manager.addTotalProfit(gameList);
                     break;
                 case "3":
                     backToMenu();
@@ -297,21 +301,37 @@ public class Main {
                     break;
                 case "7":
                     //adding the membership upgrade request to the request list
-                    //Note: unable to fetch the assigned ID and membership to the customer
-                    String i = String.valueOf(customer);
-
-
-
-
-
-                    requestList.add(new Request(i, customerList.get(getCustomer(i)).getMembership()));
-
-
-
-
-
+                    String membershipStatus = null, username = null;
+                    for (int j = 0; j < customerList.size(); j++) {
+                        if (givenId.equals(customerList.get(j).getId())) {
+                            membershipStatus = customerList.get(j).getMembership();
+                            username = customerList.get(j).getName();
+                        }
+                    }
+                    requestList.add(new Request(givenId, membershipStatus, username));
                     System.out.println("Membership request sent!");
                     break;
+                case "8":
+                    boolean whileLoop = true;
+                    while(whileLoop) {
+                        System.out.println("Press 1 for search and 2 for average rating 3 for sorted base on rating");
+                        int userInput = input.nextInt();
+                        input.nextLine();
+                        if (userInput == 1) {
+                            customerList.get(0).searchGame(gameList, input);
+                            whileLoop = false;
+                        } else if (userInput == 2) {
+                            customerList.get(0).printAverageRatingNumber(gameList);
+                            whileLoop = false;
+                        } else if (userInput == 3) {
+                            customerList.get(0).sortedBaseOnRating(gameList, input);
+                            whileLoop = false;
+                        } else {
+                            System.out.println("Please type 1, 2 or 3. ");
+                        }
+                    }
+                    break;
+
                 default:
                     System.out.println("Invalid choice");
                     backToMenu();
@@ -322,6 +342,7 @@ public class Main {
             backToMenu();
         }
     }
+
 
     private void exitProgram(){
         System.out.print("Exiting the system");
@@ -377,20 +398,12 @@ public class Main {
         }
         return customer;
     }
-    public Customer setCustomer(Customer customer){
-        Customer value=customer;
-        return value;
+    public String toString(Customer customerId){//overriding the toString() method
+        for(int i=0;i<=customerList.size();i++)
+            if(customerList.get(i).getId().equals(customerId.getId()))
+        return customerList.get(i).getId();
+            return null;
     }
-    public int getCustomer(String i){
-        for (int j = 0; j <= customerList.size(); j++)
-            if (i.equals(customerList.get(j).getId())){
-                return j;
-
-            }
-        return 0;
-    }
-
-
 
     public static void main(String[] args) {
         Manager manager = new Manager(); //We have to have manager in the program otherwise the code can't run

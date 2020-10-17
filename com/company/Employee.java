@@ -137,8 +137,25 @@ public class Employee{
 
     public void printAllCustomers(ArrayList<Customer> customerList) {
         for (Customer value : customerList) {
-            System.out.printf("ID: %s\nName: %s\nMembership: %s\n", value.getId(), value.getName(), value.getMembership());
+            System.out.printf("ID: %s\nName: %s\nMembership: %s\n\n", value.getId(), value.getName(), value.getMembership());
         }
+    }
+    public String findCustomerId(ArrayList<Customer> customerList, String customerId){
+
+        Boolean isIdFound = false;
+        String pass = null;
+
+        for(int i = 0; i < customerList.size(); i++){
+            if (customerList.get(i).getId().equals(customerId)){
+                pass = customerList.get(i).getPassword();
+                isIdFound = true;
+            }
+        }
+        if (isIdFound == false){
+            System.out.println("Your Id " +  customerId + " is not found" );
+        }
+
+        return pass;
     }
     public void upgradeMembership(Request request, String userId, Customer customer) {
 
@@ -166,12 +183,12 @@ public class Employee{
                 customer.setCreditPerItem(3);
                 System.out.println("Your membership has been upgraded to Platinum!");
             }
-            case "platinum"-> {
+            case "platinum" -> {
                 customer.setMembership("platinum");
                 customer.setDiscount(0.75); //25% discount
                 customer.setMaxItems(7);
                 customer.setCreditPerItem(3);
-                System.out.println("You can't upgrade your membership any further");
+                System.out.println("Your membership is already set to Platinum!");
             }
             default -> customer.setMembership("regular"); //if a platinum member sends upgrade request, do nothing
         }
@@ -179,5 +196,4 @@ public class Employee{
         System.out.println("Membership of customer with ID: " + userId + " is successfully upgraded!");
         //once the upgrade is done, remove that request from the request list
     }
-
 }
